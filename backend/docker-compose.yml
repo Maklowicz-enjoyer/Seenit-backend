@@ -1,0 +1,49 @@
+services:
+
+  db:
+    image: postgres:15.7
+    container_name: seenit-db
+    restart: unless-stopped
+    env_file: ./secrets/.env        
+    ports:
+      - "12543:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+   
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  
+  pgadmin:
+    image: dpage/pgadmin4:9.16
+    container_name: seenit-pgadmin
+    restart: unless-stopped
+    env_file: ./secrets/.env          # PGADMIN_DEFAULT_EMAIL / PASSWORD stąd
+    ports:
+      - "16500:80"                    # pgAdmin w środku słucha na 80
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  
+
+  api:
+    build: .
+    container_name: seenit-api
+    restart: unless-stopped
+    env_file: ./secrets/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "12500:8000"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+volumes:
+  pgdata:
+  pgadmin_data:
