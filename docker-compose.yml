@@ -33,7 +33,7 @@ services:
   
 
   api:
-    build: .
+    build: ./backend
     container_name: seenit-api
     restart: unless-stopped
     env_file: ./secrets/.env
@@ -44,6 +44,17 @@ services:
       - "12500:8000"
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api          # build-time -> zapieczone w JS
+    container_name: seenit-frontend
+    restart: unless-stopped
+    ports:
+      - "12400:6666"                # cała aplikacja pod tym portem
+    depends_on:
+      - api
 volumes:
   pgdata:
   pgadmin_data:
