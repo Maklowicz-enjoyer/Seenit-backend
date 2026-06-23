@@ -9,6 +9,15 @@ class UserOut(BaseModel):           # user zwracany klientowi (bez hasła!)
     id: int; username: str; email: str; full_name: str | None; role: str
     model_config = ConfigDict(from_attributes=True)
 
+class UserUpdate(BaseModel):        
+    full_name: str | None = None
+    email: str | None = None
+    password: str | None = None
+
+class ReviewUpdate(BaseModel):     
+    rating: float = Field(ge=1, le=10)
+    content: str | None = None
+
 class Token(BaseModel):             # odpowiedź po logowaniu
     access_token: str; token_type: str = "bearer"
 

@@ -31,3 +31,18 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)):
     return user
+
+# edytuj własny profil 
+@router.put("/me", response_model=UserOut)
+def update_me(data: UserUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if data.email is not None:
+        taken = db.query(User).filter(User.email == data.email, User.id != user.id).first()
+        if taken:
+            raise HTTPException(status.HTTP_409_CONFLICT, "Email zajęty")
+        user.email = data.email
+    if data.full_name is not None:
+        user.full_name = data.full_name
+    if data.password:
+        user.password_hash = hash_password(data.password)   # hash_password już importujesz
+    db.commit(); db.refresh(user)
+    return user

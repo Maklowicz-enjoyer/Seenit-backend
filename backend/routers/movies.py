@@ -30,6 +30,17 @@ def create_movie(data: MovieCreate, db: Session = Depends(get_db), _=Depends(req
     db.add(movie); db.commit(); db.refresh(movie)
     return movie
 
+# edytuj film — tylko admin (pełna podmiana pól)
+@router.put("/{movie_id}", response_model=MovieOut)
+def update_movie(movie_id: int, data: MovieCreate, db: Session = Depends(get_db), _=Depends(require_admin)):
+    movie = db.get(Movie, movie_id)
+    if not movie:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nie ma takiego filmu")
+    for key, value in data.model_dump().items():
+        setattr(movie, key, value)          # nadpisz pola wartościami z body
+    db.commit(); db.refresh(movie)
+    return movie
+
 # usuń film cascade
 @router.delete("/{movie_id}", status_code=204)
 def delete_movie(movie_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):

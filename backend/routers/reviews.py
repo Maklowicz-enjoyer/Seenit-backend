@@ -31,3 +31,27 @@ def add_review(data: ReviewCreate, user: User = Depends(get_current_user), db: S
     db.add(review); db.commit(); db.refresh(review)
     recompute_avg(db, data.movie_id)
     return review
+
+# edytuj swoją recenzję i przelicz średnią
+@router.put("/{review_id}", response_model=ReviewOut)
+def update_review(review_id: int, data: ReviewUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    review = db.get(Review, review_id)
+    if not review or review.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nie ma takiej recenzji")
+    review.rating = data.rating
+    review.content = data.content
+    db.commit(); db.refresh(review)
+    recompute_avg(db, review.movie_id)
+    return review
+
+# usuń recenzję (właściciel albo admin) i przelicz średnią
+@router.delete("/{review_id}", status_code=204)
+def delete_review(review_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    review = db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nie ma takiej recenzji")
+    if review.user_id != user.id and user.role != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "To nie twoja recenzja")
+    movie_id = review.movie_id
+    db.delete(review); db.commit()
+    recompute_avg(db, movie_id)             # po usunięciu średnia się zmienia
