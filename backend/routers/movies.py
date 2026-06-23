@@ -7,13 +7,21 @@ from core.deps import require_admin
 
 router = APIRouter(prefix="/movies", tags=["movies"])
 
-# lista filmów z wyszukiwaniem po tytule
+# lista filmów z wyszukiwaniem po tytule i filterm
 @router.get("", response_model=list[MovieOut])
-def list_movies(search: str | None = None, db: Session = Depends(get_db)):
+def list_movies(
+    search: str | None = None,
+    media_type: MediaType | None = None,
+    db: Session = Depends(get_db),
+):
     q = db.query(Movie)
     if search:
         q = q.filter(Movie.title.ilike(f"%{search}%"))
+    if media_type is not None:
+        q = q.filter(Movie.media_type == media_type)
     return q.order_by(Movie.id).all()
+
+
 
 # szczegóły jednego filmu albo 404
 @router.get("/{movie_id}", response_model=MovieOut)

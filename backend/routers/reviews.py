@@ -3,7 +3,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from database import get_db
 from models.models import Review, Movie, User
-from schemas import ReviewCreate, ReviewOut
+from schemas import ReviewCreate, ReviewOut, ReviewUpdate
 from core.deps import get_current_user
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
