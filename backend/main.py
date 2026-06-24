@@ -7,7 +7,7 @@ app = FastAPI(title="SeenIt API")
 # pozwól frontendowi (inny adres) wołać API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],   # dopisz tu adres frontendu z homelaba
+    allow_origins=["http://localhost5173"],
     allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
 )
 
